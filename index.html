@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Control de Gastos</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Header / Month Selector -->
+        <header class="app-header">
+            <div class="header-top">
+                <select id="monthSelector" class="month-select"></select>
+                <div class="user-profile">
+                    <i data-lucide="user"></i>
+                </div>
+            </div>
+            <div class="balance-card">
+                <span class="label">Balance Total</span>
+                <h1 id="totalBalance">$0.00</h1>
+                <div class="summary-grid">
+                    <div class="summary-item income">
+                        <i data-lucide="arrow-up-circle"></i>
+                        <div>
+                            <span>Ingresos</span>
+                            <p id="totalIncome">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="summary-item expense">
+                        <i data-lucide="arrow-down-circle"></i>
+                        <div>
+                            <span>Gastos</span>
+                            <p id="totalExpense">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-content">
+            <!-- View: Overview (Default) -->
+            <section id="view-overview" class="view active">
+                <div class="savings-card">
+                    <div class="savings-info">
+                        <h3>Ahorro Logrado</h3>
+                        <p id="totalSavings">$0.00</p>
+                    </div>
+                    <div class="savings-icon">
+                        <i data-lucide="piggy-bank"></i>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Gastos por Categoría</h3>
+                    <canvas id="expenseChart"></canvas>
+                </div>
+
+                <div class="recent-activity">
+                    <div class="section-header">
+                        <h3>Actividad Reciente</h3>
+                        <button class="btn-text" onclick="app.switchView('transactions')">Ver todo</button>
+                    </div>
+                    <div id="recentList" class="transaction-list">
+                        <!-- Items injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Transactions -->
+            <section id="view-transactions" class="view">
+                <div class="tabs">
+                    <button class="tab-btn active" data-type="all">Todo</button>
+                    <button class="tab-btn" data-type="income">Ingresos</button>
+                    <button class="tab-btn" data-type="expense">Gastos</button>
+                    <button class="tab-btn" data-type="saving">Ahorro</button>
+                </div>
+                <div id="fullTransactionList" class="transaction-list">
+                    <!-- Items injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="app.switchView('overview')">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Inicio</span>
+            </button>
+            <button class="nav-item" onclick="app.switchView('transactions')">
+                <i data-lucide="list"></i>
+                <span>Registros</span>
+            </button>
+            <button class="nav-item" onclick="app.openModal()">
+                <div class="fab">
+                    <i data-lucide="plus"></i>
+                </div>
+            </button>
+            <button class="nav-item" onclick="app.switchView('charts')">
+                <i data-lucide="pie-chart"></i>
+                <span>Gráficos</span>
+            </button>
+            <button class="nav-item" onclick="app.switchView('settings')">
+                <i data-lucide="settings"></i>
+                <span>Ajustes</span>
+            </button>
+        </nav>
+
+        <!-- Modal for Add/Edit -->
+        <div id="transactionModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Nuevo Registro</h2>
+                    <button class="close-btn" onclick="app.closeModal()">&times;</button>
+                </div>
+                <form id="transactionForm">
+                    <input type="hidden" id="editId">
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <div class="type-selector">
+                            <label class="type-option">
+                                <input type="radio" name="type" value="income" checked>
+                                <span>Ingreso</span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="type" value="expense">
+                                <span>Gasto</span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="type" value="saving">
+                                <span>Ahorro</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Monto</label>
+                        <input type="number" id="amount" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Categoría</label>
+                        <select id="category" required>
+                            <!-- Dynamic options -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Fecha</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Descripción</label>
+                        <input type="text" id="description" placeholder="Ej: Supermercado">
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar Registro</button>
+                    <button type="button" id="deleteBtn" class="btn-danger" style="display: none;">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
